@@ -5,7 +5,11 @@ import connectDB from "./config/db.js";
 import { initializeClient, sendMessage, sendMedia, sendReadReceipt, sendTypingStatus, markAsUnread, getAllGroups } from "./internal/whatsappwebjs/whatsapp.js";
 
 import userRoutes from "./internal/user/routes.js";
+import authRoutes from "./internal/auth/routes.js";
+import friendRoutes from "./internal/friend/routes.js";
+import taskRoutes from "./internal/task/routes.js";
 import aiRoutes from "./internal/ai/routes.js";
+import recurringRoutes from "./internal/recurring/routes.js";
 
 dotenv.config();
 const app = express();
@@ -64,7 +68,13 @@ app.get("/api/whatsapp/getGroups", async (req, res) => {
 
 
 app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/friend", friendRoutes);
+
+app.use("/api/tasks", taskRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/recurring", recurringRoutes);
+
 app.use((err, req, res, next) => {
   console.error("Error:", err.message);
   res.status(err.status || 500).json({ message: err.message });
