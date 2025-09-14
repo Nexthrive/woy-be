@@ -18,7 +18,9 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
-    "mongoose": "^8.14.0"
+    "mongoose": "^8.14.0",
+    "openai": "^5.20.2",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "dotenv": "^16.5.0",
