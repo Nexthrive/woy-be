@@ -1,4 +1,3 @@
-import User from "../../models/user.js";
 import * as userService from "../user/service.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -13,7 +12,7 @@ export const login = async (req, res, next) => {
         .json({ message: "Email dan password wajib diisi" });
     }
 
-    const user = await User.findOne({ email });
+    const user = await userService.getUserByEmail(email);
     if (!user) {
       return res.status(404).json({ message: "User tidak ditemukan" });
     }
@@ -25,7 +24,7 @@ export const login = async (req, res, next) => {
 
     const token = jwt.sign(
       { userId: user._id },
-      process.env.JWT_SECRET, // fallback biar ga error kalau lupa
+      process.env.JWT_SECRET,
       { expiresIn: "12h" },
     );
 
@@ -49,7 +48,7 @@ export const register = async (req, res, next) => {
         .json({ message: "Name, email, dan password wajib diisi" });
     }
 
-    const existing = await User.findOne({ email });
+    const existing = await userService.getUserByEmail(email);
     if (existing) {
       return res.status(409).json({ message: "Email sudah terdaftar" });
     }
