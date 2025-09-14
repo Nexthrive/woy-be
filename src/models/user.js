@@ -14,6 +14,8 @@ const userSchema = new mongoose.Schema(
     },
     password: { type: String, required: true, minlength: 8 },
     points: { type: Number, default: 0 },
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    friendRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true },
 );
