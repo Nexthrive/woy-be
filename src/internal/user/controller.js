@@ -1,11 +1,34 @@
 import * as userService from "./service.js";
+import User from "../../models/user.js";
+import bcrypt from "bcrypt";
 
 export const createUser = async (req, res, next) => {
   try {
-    console.log("Incoming user:", req.body);
+    const { email, password, ...rest } = req.body;
 
-    const user = await userService.createUser(req.body);
-    res.status(201).json(user);
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Email dan password wajib diisi" });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+      return res.status(409).json({ message: "Email sudah terdaftar" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await userService.createUser({
+      email,
+      password: hashedPassword,
+      ...rest,
+    });
+
+    // 5. Sanitasi output
+    const { password: _, __v, ...safeUser } = user.toObject();
+
+    return res.status(201).json(safeUser);
   } catch (err) {
     next(err);
   }
