@@ -25,7 +25,7 @@ app.get("/api/ping", (req, res) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/friend", friendRoutes);
+app.use("/api/friends", friendRoutes);
 
 app.use((err, req, res, next) => {
   console.error("Error:", err.message);

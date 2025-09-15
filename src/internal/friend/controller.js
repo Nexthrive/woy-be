@@ -1,34 +1,18 @@
-import User from "../../models/user.js";
+import { getJWTData } from "../../middleware/auth.js";
+import * as friendService from "./service.js";
 
 export const sendFriendRequest = async (req, res) => {
   try {
-    const { fromUserId, toUserId } = req.body;
-
-    if (fromUserId === toUserId) {
-      return res.status(400).json({ message: "Tidak bisa add diri sendiri" });
+    const jwtResult = getJWTData(req);
+    if (!jwtResult.success) {
+      return res.status(401).json({ message: "Unauthorized: " + jwtResult.error });
     }
 
-    const fromUser = await User.findById(fromUserId);
-    const toUser = await User.findById(toUserId);
+    const fromUserId = jwtResult.data.userId;
+    const { toUserId } = req.body;
 
-    if (!fromUser || !toUser) {
-      return res.status(404).json({ message: "User tidak ditemukan" });
-    }
-
-    // Cek kalau udah temenan
-    if (fromUser.friends.includes(toUserId)) {
-      return res.status(400).json({ message: "Sudah berteman" });
-    }
-
-    // Cek kalau request sudah pernah dikirim
-    if (toUser.friendRequests.includes(fromUserId)) {
-      return res.status(400).json({ message: "Request sudah dikirim" });
-    }
-
-    toUser.friendRequests.push(fromUserId);
-    await toUser.save();
-
-    return res.json({ message: "Request terkirim" });
+    const result = await friendService.sendFriendRequestService({ fromUserId, toUserId });
+    return res.status(result.status).json(result.body);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
@@ -36,35 +20,67 @@ export const sendFriendRequest = async (req, res) => {
 
 export const acceptFriendRequest = async (req, res) => {
   try {
-    const { fromUserId, toUserId } = req.body;
-    // fromUserId = pengirim request
-    // toUserId   = penerima yang sekarang accept
-
-    const fromUser = await User.findById(fromUserId);
-    const toUser = await User.findById(toUserId);
-
-    if (!fromUser || !toUser) {
-      return res.status(404).json({ message: "User tidak ditemukan" });
+    const jwtResult = getJWTData(req);
+    if (!jwtResult.success) {
+      return res.status(401).json({ message: "Unauthorized: " + jwtResult.error });
     }
 
-    // Pastikan ada request dulu
-    if (!toUser.friendRequests.includes(fromUserId)) {
-      return res.status(400).json({ message: "Tidak ada request" });
+    const toUserId = jwtResult.data.userId;
+    const { fromUserId } = req.body;
+
+    const result = await friendService.acceptFriendRequestService({ toUserId, fromUserId });
+    return res.status(result.status).json(result.body);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+// Mendapatkan daftar teman user
+export const getFriendsList = async (req, res) => {
+  try {
+    const jwtResult = getJWTData(req);
+    if (!jwtResult.success) {
+      return res.status(401).json({ message: "Unauthorized: " + jwtResult.error });
     }
 
-    // Tambah teman dua arah
-    fromUser.friends.push(toUserId);
-    toUser.friends.push(fromUserId);
+    const userId = jwtResult.data.userId;
+    const result = await friendService.getFriendsListService({ userId });
+    return res.status(result.status).json(result.body);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
 
-    // Hapus dari daftar request
-    toUser.friendRequests = toUser.friendRequests.filter(
-      (id) => id.toString() !== fromUserId,
-    );
+// Mendapatkan leaderboard berdasarkan points dari teman-teman user
+export const getLeaderboard = async (req, res) => {
+  try {
+    const jwtResult = getJWTData(req);
+    if (!jwtResult.success) {
+      return res.status(401).json({ message: "Unauthorized: " + jwtResult.error });
+    }
 
-    await fromUser.save();
-    await toUser.save();
+    const userId = jwtResult.data.userId;
+    const { page = 1, limit = 10 } = req.query;
 
-    return res.json({ message: "Berhasil jadi teman" });
+    const result = await friendService.getFriendsLeaderboardService({ userId, page, limit });
+    return res.status(result.status).json(result.body);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export const removeFriend = async (req, res) => {
+  try {
+    const jwtResult = getJWTData(req);
+    if (!jwtResult.success) {
+      return res.status(401).json({ message: "Unauthorized: " + jwtResult.error });
+    }
+
+    const userId = jwtResult.data.userId;
+    const { friendId } = req.body;
+
+    const result = await friendService.removeFriendService({ userId, friendId });
+    return res.status(result.status).json(result.body);
   } catch (err) {
     return res.status(500).json({ message: err.message });
   }
