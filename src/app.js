@@ -69,7 +69,7 @@ app.get("/api/whatsapp/getGroups", async (req, res) => {
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
-app.use("/api/friend", friendRoutes);
+app.use("/api/friends", friendRoutes);
 
 app.use("/api/tasks", taskRoutes);
 app.use("/api/ai", aiRoutes);
